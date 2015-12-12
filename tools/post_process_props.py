@@ -22,7 +22,7 @@ import os, sys
 # See PROP_NAME_MAX and PROP_VALUE_MAX system_properties.h.
 # The constants in system_properties.h includes the termination NUL,
 # so we decrease the values by 1 here.
-PROP_NAME_MAX = 32
+PROP_NAME_MAX = 31
 PROP_VALUE_MAX = 91
 
 # Put the modifications that you need to make into the /system/build.prop into this
@@ -63,8 +63,6 @@ def validate(prop):
   """
   check_pass = True
   buildprops = prop.to_dict()
-  dev_build = buildprops.get("ro.build.version.incremental",
-                             "").startswith("eng")
   for key, value in buildprops.iteritems():
     # Check build properties' length.
     if len(key) > PROP_NAME_MAX:
@@ -73,19 +71,10 @@ def validate(prop):
                        (key, PROP_NAME_MAX))
       sys.stderr.write("%s (%d)\n" % (key, len(key)))
     if len(value) > PROP_VALUE_MAX:
-      # If dev build, show a warning message, otherwise fail the
-      # build with error message
-      if dev_build:
-        sys.stderr.write("warning: %s exceeds %d bytes: " %
-                         (key, PROP_VALUE_MAX))
-        sys.stderr.write("%s (%d)\n" % (value, len(value)))
-        sys.stderr.write("warning: This will cause the %s " % key)
-        sys.stderr.write("property return as empty at runtime\n")
-      else:
-        check_pass = False
-        sys.stderr.write("error: %s cannot exceed %d bytes: " %
-                         (key, PROP_VALUE_MAX))
-        sys.stderr.write("%s (%d)\n" % (value, len(value)))
+      check_pass = False
+      sys.stderr.write("error: %s cannot exceed %d bytes: " %
+                       (key, PROP_VALUE_MAX))
+      sys.stderr.write("%s (%d)\n" % (value, len(value)))
   return check_pass
 
 class PropFile:

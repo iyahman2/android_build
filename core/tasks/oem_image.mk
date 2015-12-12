@@ -15,16 +15,7 @@
 #
 
 # We build oem.img only if it's asked for.
-skip_oem_image := true
 ifneq ($(filter $(MAKECMDGOALS),oem_image),)
-    skip_oem_image := false
-endif
-
-ifneq ($(BOARD_OEMIMAGE_FILE_SYSTEM_TYPE),)
-    skip_oem_image := false
-endif
-
-ifneq ($(skip_oem_image),true)
 ifndef BOARD_OEMIMAGE_PARTITION_SIZE
 $(error BOARD_OEMIMAGE_PARTITION_SIZE is not set.)
 endif
@@ -45,11 +36,11 @@ $(INSTALLED_OEMIMAGE_TARGET) : $(INTERNAL_USERIMAGES_DEPS) $(INTERNAL_OEMIMAGE_F
 	$(call generate-userimage-prop-dictionary, $(oemimage_intermediates)/oem_image_info.txt, skip_fsck=true)
 	$(hide) PATH=$(foreach p,$(INTERNAL_USERIMAGES_BINARY_PATHS),$(p):)$$PATH \
 	  ./build/tools/releasetools/build_image.py \
-	  $(TARGET_OUT_OEM) $(oemimage_intermediates)/oem_image_info.txt $@
+	  $(TARGET_OUT_OEM) $(oemimage_intermediates)/oem_image_info.txt $@ $(TARGET_OUT)
 	$(hide) $(call assert-max-image-size,$@,$(BOARD_OEMIMAGE_PARTITION_SIZE))
 
 .PHONY: oem_image
 oem_image : $(INSTALLED_OEMIMAGE_TARGET)
 $(call dist-for-goals, oem_image, $(INSTALLED_OEMIMAGE_TARGET))
 
-endif
+endif  # oem_image in $(MAKECMDGOALS)
